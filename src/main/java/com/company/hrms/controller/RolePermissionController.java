@@ -5,27 +5,29 @@ import com.company.hrms.dto.role.PermissionDTO;
 import com.company.hrms.dto.role.RoleDTO;
 import com.company.hrms.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @Tag(name = "Affectations", description = "Employee management APIs")
 @RestController
-@RequestMapping("/api/v1/affectation")
+@RequestMapping("/v1/affectation")
 @RequiredArgsConstructor
-//@SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = "bearerAuth")
 public class RolePermissionController {
 
     private final RoleService roleService;
 
     @Operation(summary = "Create role", description = "Create a new role")
     @PostMapping("/role")
-//    @PreAuthorize("hasAnyAuthority('EMPLOYEE_CREATE', 'ROLE_ADMIN', 'ROLE_HR_MANAGER')")
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE_CREATE', 'ROLE_ADMIN', 'ROLE_HR_MANAGER')")
     public ResponseEntity<ApiResponse<RoleDTO>> createEmployee(
             @Valid @RequestBody RoleDTO roleDTO) {
         RoleDTO createdRole = roleService.createRole(roleDTO);
@@ -35,7 +37,7 @@ public class RolePermissionController {
 
     @Operation(summary = "Create permission", description = "Create a new permission")
     @PostMapping("/permission")
-//    @PreAuthorize("hasAnyAuthority('EMPLOYEE_CREATE', 'ROLE_ADMIN', 'ROLE_HR_MANAGER')")
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE_CREATE', 'ROLE_ADMIN', 'ROLE_HR_MANAGER')")
     public ResponseEntity<ApiResponse<List<PermissionDTO>>> createEmployee(
             @Valid @RequestBody List<PermissionDTO> permissionDTO) {
         List<PermissionDTO> createPermission = roleService.createPermission(permissionDTO);

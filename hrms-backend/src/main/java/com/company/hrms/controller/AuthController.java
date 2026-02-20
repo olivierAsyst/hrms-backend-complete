@@ -2,7 +2,6 @@ package com.company.hrms.controller;
 
 import com.company.hrms.dto.auth.AuthResponse;
 import com.company.hrms.dto.auth.LoginRequest;
-import com.company.hrms.dto.auth.RefreshTokenRequest;
 import com.company.hrms.dto.auth.RegisterRequest;
 import com.company.hrms.dto.common.ApiResponse;
 import com.company.hrms.service.AuthService;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "Authentication management APIs")
 @RestController
-@RequestMapping("/v1/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -39,19 +38,8 @@ public class AuthController {
 
     @Operation(summary = "User logout", description = "Logout current user")
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<String>> logout(String refreshToken) {
-        authService.logout(refreshToken);
+    public ResponseEntity<ApiResponse<String>> logout() {
+        authService.logout();
         return ResponseEntity.ok(ApiResponse.success("Logout successful", null));
-    }
-
-    @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
-            @RequestBody RefreshTokenRequest request) {
-
-        AuthResponse response = authService.refreshToken(request.getRefreshToken());
-
-        return ResponseEntity.ok(
-                ApiResponse.success("Token refreshed successfully", response)
-        );
     }
 }

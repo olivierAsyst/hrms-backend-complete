@@ -3,13 +3,11 @@ package com.company.hrms.service;
 import com.company.hrms.dto.auth.AuthResponse;
 import com.company.hrms.dto.auth.LoginRequest;
 import com.company.hrms.dto.auth.RegisterRequest;
-import com.company.hrms.entity.RefreshToken;
 import com.company.hrms.entity.Role;
 import com.company.hrms.entity.User;
 import com.company.hrms.enums.RoleType;
 import com.company.hrms.exception.BadRequestException;
 import com.company.hrms.exception.DuplicateResourceException;
-import com.company.hrms.repository.RefreshTokenRepository;
 import com.company.hrms.repository.RoleRepository;
 import com.company.hrms.repository.UserRepository;
 import com.company.hrms.security.JwtTokenProvider;
@@ -40,49 +38,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final AuditService auditService;
-    private final RefreshTokenService refreshTokenService;
-    private final RefreshTokenRepository refreshTokenRepository;
-
-    @Transactional
-    public AuthResponse refreshToken(String requestToken) {
-
-        RefreshToken refreshToken = refreshTokenRepository
-                .findByTokenAndRevokedFalse(requestToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-
-        refreshTokenService.verifyExpiration(refreshToken);
-        User user = refreshToken.getUser();
-
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        user.getUsername(),
-                        null,
-                        user.getAuthorities()
-                );
-
-        String newAccessToken = tokenProvider.generateToken(authentication);
-
-        // Log audit
-        auditService.logAuthentication("REFRESH_TOKEN", user.getUsername(), true, null);
-
-        return AuthResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken.getToken())
-                .type("Bearer")
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .roles(user.getRoles().stream()
-                        .map(r -> r.getName().name())
-                        .collect(Collectors.toSet()))
-                .permissions(user.getRoles().stream()
-                        .flatMap(r -> r.getPermissions().stream())
-                        .map(p -> p.getName().name())
-                        .collect(Collectors.toSet()))
-                .build();
-    }
 
     @Transactional
     public AuthResponse login(LoginRequest loginRequest) {
@@ -104,8 +59,6 @@ public class AuthService {
             User user = userRepository.findByUsernameAndDeletedFalse(loginRequest.getUsername())
                     .orElseThrow(() -> new BadRequestException("User not found"));
 
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
-
             // Update last login
             userRepository.updateLastLogin(user.getId(), LocalDateTime.now());
 
@@ -123,8 +76,7 @@ public class AuthService {
                     .collect(Collectors.toSet());
 
             return AuthResponse.builder()
-                    .accessToken(token)
-                    .refreshToken(refreshToken.getToken())
+                    .token(token)
                     .type("Bearer")
                     .id(user.getId())
                     .username(user.getUsername())
@@ -230,11 +182,8 @@ public class AuthService {
                 .map(permission -> permission.getName().name())
                 .collect(Collectors.toSet());
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser);
-
         return AuthResponse.builder()
-                .accessToken(token)
-                .accessToken(refreshToken.getToken())
+                .token(token)
                 .type("Bearer")
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
@@ -246,12 +195,11 @@ public class AuthService {
                 .build();
     }
 
-    public void logout(String refreshToken) {
+    public void logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
             auditService.logAuthentication("LOGOUT", username, true, null);
-            refreshTokenService.revokeToken(refreshToken);
             SecurityContextHolder.clearContext();
         }
     }

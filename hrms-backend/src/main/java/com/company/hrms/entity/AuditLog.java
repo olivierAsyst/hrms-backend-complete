@@ -2,9 +2,6 @@ package com.company.hrms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -50,13 +47,11 @@ public class AuditLog {
     private String userAgent;
 
     // Old values stored as JSONB
-    @Column(name = "old_values")
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "old_values", columnDefinition = "jsonb")
     private String oldValues;
 
     // New values stored as JSONB
-    @Column(name = "new_values")
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "new_values", columnDefinition = "jsonb")
     private String newValues;
 
     @Column(name = "description", columnDefinition = "TEXT")

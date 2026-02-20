@@ -23,7 +23,7 @@ import java.util.List;
 
 @Tag(name = "Employees", description = "Employee management APIs")
 @RestController
-@RequestMapping("/v1/employees")
+@RequestMapping("/api/v1/employees")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 public class EmployeeController {
