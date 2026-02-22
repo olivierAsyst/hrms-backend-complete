@@ -1,11 +1,13 @@
 package com.company.hrms;
 
+import com.company.hrms.dto.auth.RegisterRequest;
 import com.company.hrms.entity.Permission;
 import com.company.hrms.entity.Role;
 import com.company.hrms.enums.PermissionType;
 import com.company.hrms.enums.RoleType;
 import com.company.hrms.repository.PermissionRepository;
 import com.company.hrms.repository.RoleRepository;
+import com.company.hrms.service.AuthService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,10 +15,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static com.company.hrms.enums.PermissionType.*;
 
@@ -30,7 +29,11 @@ public class HrmsBackendApplication {
     }
 
 //    @Bean
-    CommandLineRunner start(PermissionRepository permissionRepository, RoleRepository roleRepository) {
+    CommandLineRunner start(
+            PermissionRepository permissionRepository,
+            RoleRepository roleRepository,
+            AuthService authService
+            ) {
         return args -> {
 
             if (roleRepository.findAll().isEmpty()) {
@@ -80,6 +83,16 @@ public class HrmsBackendApplication {
                 role.setDescription("Role super admin");
                 role.setPermissions(new HashSet<>(all));
                 roleRepository.save(role);
+                RegisterRequest user = new RegisterRequest(
+                        "Bonix",
+                        "bonheur@ymail.com",
+                        "Test@123",
+                        "Bonheur",
+                        "Bagule",
+                        "0999644524",
+                        Set.of("ROLE_SUPER_ADMIN")
+                );
+                authService.register(user);
             }
 
         };

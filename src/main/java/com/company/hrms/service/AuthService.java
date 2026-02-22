@@ -234,7 +234,7 @@ public class AuthService {
 
         return AuthResponse.builder()
                 .accessToken(token)
-                .accessToken(refreshToken.getToken())
+                .refreshToken(refreshToken.getToken())
                 .type("Bearer")
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
